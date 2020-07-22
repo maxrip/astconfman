@@ -992,13 +992,26 @@ def unmute_request(conf_number, callerid):
 def online_participants_json(conf_number):
     # This is public view called from WEB clients
     conf = Conference.query.filter_by(number=conf_number).first()
+    participants = {}
+    for p in conf.participants:
+        participants[str(p.phone)] = p.name
+
     _participants = confbridge_list_participants(conf_number)
 
     for i in _participants:
-        participant = Participant.query.filter_by(
-            conference=conf, phone=str(i['callerid'])).first()
-        if participant:
-            i['name'] = participant.name
-    ret = _participants
+        if i['callerid'] in participants:
+            i['name'] = participants[i['callerid']]
+            del participants[i['callerid']]
+    out = []
+    for key, value in participants.items():
+        out.append({
+            'callerid':key,
+            'name':value
+        })
+
+    ret = {
+        'in':_participants,
+        'out':out
+    }
     return Response(response=json.dumps(ret),
                     status=200, mimetype='application/json')

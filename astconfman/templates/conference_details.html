@@ -123,7 +123,7 @@
 
             var ParticipantList = React.createClass({
                 render: function() {
-                    var participantNodes = this.props.data.map(function (p) {
+                    var participantNodes = this.props.data.in.map(function (p) {
                         var mutedBtn;
                         var unmutedBtn;
                         var mutedSpan;
@@ -158,10 +158,29 @@
                                 </ul>                            
                             </div>
                         ) 
-                    });                    
+                    });
+                    var participantNodesOut = this.props.data.out.map(function (p) {
+                        return (
+                            <div className='btn-group'>
+                                <button id={'participant-' + p.callerid} className="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                {' ' + p.name + ' '}
+                                <span className="caret"></span>
+                                </button>
+                                <ul className="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                    <li><a href={"{{ url_for('.invite_guest', conf_id=model.id) }}?phone="+p.callerid}><span className="glyphicon glyphicon-phone-alt"></span> {{ _('Invite') }} </a></li>
+                                </ul>
+                            </div>
+                        )
+                    });
                     return (
-                            <div className="row customNoMargin">
+                            <div>
+                                <div className="row customNoMargin">
                                 {participantNodes}
+                                </div>
+                                <h3>Не подключены</h3>
+                                <div className="row customNoMargin">
+                                 {participantNodesOut}
+                                </div>
                             </div>
                         );
                 }
@@ -184,7 +203,7 @@
                 },
 
                 getInitialState: function() {
-                    return {data: []};
+                    return {data: {'out':[],'in':[]}};
                 },
 
                 componentDidMount: function() {
