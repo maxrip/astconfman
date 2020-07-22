@@ -259,8 +259,15 @@ class ConferenceAdmin(MyModelView, AuthBaseView):
     @expose('/details/')
     def details_view(self):
         conf = Conference.query.get_or_404(request.args.get('id', 0))
-        self._template_args['confbridge_participants'] = \
-            confbridge_list_participants(conf.number)
+        _participants =  confbridge_list_participants(conf.number)
+
+        for i in _participants:
+            participant = Participant.query.filter_by(
+                conference=conf, phone=i['callerid']).first()
+            if participant:
+                i['name'] = participant.name
+
+        self._template_args['confbridge_participants'] = _participants
         self._template_args['confbridge'] = confbridge_get(conf.number)
         return super(ModelView, self).details_view()
 
@@ -463,8 +470,14 @@ class ConferenceUser(UserModelView, ConferenceAdmin):
     @expose('/details/')
     def details_view(self):
         conf = Conference.query.get_or_404(request.args.get('id', 0))
-        self._template_args['confbridge_participants'] = \
-            confbridge_list_participants(conf.number)
+        _participants = confbridge_list_participants(conf.number)
+        for i in _participants:
+            participant = Participant.query.filter_by(
+                conference=conf, phone=i['callerid']).first()
+            if participant:
+                i['name'] = participant.name
+
+        self._template_args['confbridge_participants'] = _participants
         self._template_args['confbridge'] = confbridge_get(conf.number)
         return super(ModelView, self).details_view()
 
@@ -978,6 +991,14 @@ def unmute_request(conf_number, callerid):
 @asterisk.route('/online_participants.json/<int:conf_number>')
 def online_participants_json(conf_number):
     # This is public view called from WEB clients
-    ret = confbridge_list_participants(conf_number)
+    conf = Conference.query.filter_by(number=conf_number).first()
+    _participants = confbridge_list_participants(conf_number)
+
+    for i in _participants:
+        participant = Participant.query.filter_by(
+            conference=conf, phone=str(i['callerid'])).first()
+        if participant:
+            i['name'] = participant.name
+    ret = _participants
     return Response(response=json.dumps(ret),
                     status=200, mimetype='application/json')

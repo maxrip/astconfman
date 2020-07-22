@@ -5,6 +5,7 @@ import tempfile
 from flask_babelex import gettext
 from transliterate import translit
 from app import app
+#from models import Participant
 
 config = app.config
 
@@ -73,10 +74,18 @@ def confbridge_list_participants(confno):
                 flags = line[1]
                 callerid = line[5]
 
+        # participant = Participant.query.filter_by(conference=confno, phone=callerid).first()
+        # if participant:
+        #     name = participant.name
+        # else:
+        #    name = callerid
+#        name = callerid
+
         participants.append({
                 'channel': channel,
                 'flags': flags,
                 'callerid': callerid,
+                'name': callerid,
                 }
         )
     return participants
